@@ -1,10 +1,16 @@
 import WebSocket from "ws";
 import { finalizeResult } from "./finalize";
+import dotenv from "dotenv";
+dotenv.config();
 
-const CHUNK_SIZE = 44100;
-const TOTAL_SIZE = 158_760_000;
+const chunkSize = Number(process.env.CHUNK_SIZE);
+const totalSize = Number(process.env.TOTAL_SIZE);
 
-const fullData = new Float32Array(TOTAL_SIZE);
+if (isNaN(chunkSize) || isNaN(totalSize)) {
+  throw new Error("CHUNK_SIZE and TOTAL_SIZE must be valid numbers in .env");
+}
+
+const fullData = new Float32Array(totalSize);
 let currentIndex = 0;
 
 type Task = {
@@ -20,9 +26,9 @@ export function getNextChunk(): {
   startIndex: number;
   chunk: Float32Array;
 } | null {
-  if (currentIndex >= TOTAL_SIZE) return null;
+  if (currentIndex >= totalSize) return null;
 
-  const end = Math.min(currentIndex + CHUNK_SIZE, TOTAL_SIZE);
+  const end = Math.min(currentIndex + chunkSize, totalSize);
   const chunk = fullData.slice(currentIndex, end);
   const result = { startIndex: currentIndex, chunk };
   currentIndex = end;
@@ -69,9 +75,9 @@ export function handleResult(peerId: number, data: any) {
   console.log(`Received result from peer ${peerId} (chunk at ${startIndex})`);
 
   // Проверка, все ли чанки собраны
-  if (receivedChunks.size * CHUNK_SIZE >= TOTAL_SIZE) {
+  if (receivedChunks.size * chunkSize >= totalSize) {
     console.log("All chunks received. Finalizing...");
-    finalizeResult(receivedChunks, TOTAL_SIZE);
+    finalizeResult(receivedChunks, totalSize);
   }
 }
 

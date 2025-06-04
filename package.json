@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "nodemon src/app.ts"
+    "serve": "nodemon src/app.ts",
+    "client": "npx ts-node src/testClient.ts"
   },
   "author": "Makrenka",
   "license": "ISC",
